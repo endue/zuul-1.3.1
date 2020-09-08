@@ -56,13 +56,16 @@ public class ZuulServlet extends HttpServlet {
 
         String bufferReqsStr = config.getInitParameter("buffer-requests");
         boolean bufferReqs = bufferReqsStr != null && bufferReqsStr.equals("true") ? true : false;
-
+        // 初始化一个zuulRunner
+        // 用来包装requests和responses到请求上线文RequestContext中
+        // 并且还提供了调用pre、route、post、error过滤器的方法
         zuulRunner = new ZuulRunner(bufferReqs);
     }
 
     @Override
     public void service(javax.servlet.ServletRequest servletRequest, javax.servlet.ServletResponse servletResponse) throws ServletException, IOException {
         try {
+            // 初始化servletRequest、servletResponse到当前线程的RequestContext中
             init((HttpServletRequest) servletRequest, (HttpServletResponse) servletResponse);
 
             // Marks this request as having passed through the "Zuul engine", as opposed to servlets

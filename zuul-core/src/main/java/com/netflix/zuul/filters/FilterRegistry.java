@@ -16,7 +16,7 @@ public class FilterRegistry {
     public static final FilterRegistry instance() {
         return INSTANCE;
     }
-
+    // 保存ZuulFilter的名称和ZuulFilter的关系
     private final ConcurrentHashMap<String, ZuulFilter> filters = new ConcurrentHashMap<String, ZuulFilter>();
 
     private FilterRegistry() {

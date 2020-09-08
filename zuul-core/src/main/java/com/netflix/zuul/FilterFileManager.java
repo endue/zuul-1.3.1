@@ -48,14 +48,14 @@ public class FilterFileManager {
 
     private static final Logger LOG = LoggerFactory.getLogger(FilterFileManager.class);
 
-    String[] aDirectories;
-    int pollingIntervalSeconds;
-    Thread poller;
-    boolean bRunning = true;
+    String[] aDirectories;// 默认"src/main/groovy/filters\pre"、"src/main/groovy/filters\route"、"src/main/groovy/filters\post"
+    int pollingIntervalSeconds;// 默认5
+    Thread poller;// 定时任务启动的线程，每5s执行一次
+    boolean bRunning = true;// 定时任务中while选择的判断条件
 
-    static FilenameFilter FILENAME_FILTER;
+    static FilenameFilter FILENAME_FILTER;// 默认GroovyFileFilter
 
-    static FilterFileManager INSTANCE;
+    static FilterFileManager INSTANCE;// 单例模式创建自己
 
     private FilterFileManager() {
     }
@@ -68,17 +68,23 @@ public class FilterFileManager {
      * Initialized the GroovyFileManager.
      *
      * @param pollingIntervalSeconds the polling interval in Seconds
+     *                               默认5
      * @param directories            Any number of paths to directories to be polled may be specified
+     *                               默认"src/main/groovy/filters\pre"、"src/main/groovy/filters\route"、"src/main/groovy/filters\post"
      * @throws IOException
      * @throws IllegalAccessException
      * @throws InstantiationException
      */
     public static void init(int pollingIntervalSeconds, String... directories) throws Exception, IllegalAccessException, InstantiationException {
+        // 单例模式初始化
         if (INSTANCE == null) INSTANCE = new FilterFileManager();
 
         INSTANCE.aDirectories = directories;
         INSTANCE.pollingIntervalSeconds = pollingIntervalSeconds;
+        // 立即读取aDirectories目录下的Groovy文件
+        // 之后会启动一个定时任务再每隔5s执行一次
         INSTANCE.manageFiles();
+        // 启动定时任务，每5s执行一次
         INSTANCE.startPoller();
 
     }
@@ -104,6 +110,7 @@ public class FilterFileManager {
             public void run() {
                 while (bRunning) {
                     try {
+                        // 睡眠5s
                         sleep(pollingIntervalSeconds * 1000);
                         manageFiles();
                     } catch (Exception e) {
@@ -147,6 +154,8 @@ public class FilterFileManager {
         List<File> list = new ArrayList<File>();
         for (String sDirectory : aDirectories) {
             if (sDirectory != null) {
+                // FILENAME_FILTER默认为GroovyFileFilter，然后会调用GroovyFileFilter的accept
+                // 这里就是获取每个路径下的Groovy文件
                 File directory = getDirectory(sDirectory);
                 File[] aFiles = directory.listFiles(FILENAME_FILTER);
                 if (aFiles != null) {
@@ -166,7 +175,7 @@ public class FilterFileManager {
      * @throws IllegalAccessException
      */
     void processGroovyFiles(List<File> aFiles) throws Exception, InstantiationException, IllegalAccessException {
-
+        // 把加载的文件交给FilterLoader来处理
         for (File file : aFiles) {
             FilterLoader.getInstance().putFilter(file);
         }

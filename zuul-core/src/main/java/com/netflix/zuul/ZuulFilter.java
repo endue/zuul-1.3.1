@@ -86,7 +86,8 @@ public abstract class ZuulFilter implements IZuulFilter, Comparable<ZuulFilter> 
 
     /**
      * The name of the Archaius property to disable this filter. by default it is zuul.[classname].[filtertype].disable
-     *
+     * 如：
+     * zuul.SendErrorFilter.error.disable=true
      * @return
      */
     public String disablePropertyName() {
@@ -110,10 +111,13 @@ public abstract class ZuulFilter implements IZuulFilter, Comparable<ZuulFilter> 
      */
     public ZuulFilterResult runFilter() {
         ZuulFilterResult zr = new ZuulFilterResult();
+        // 判断当前执行的ZuulFilter是否被禁用
         if (!isFilterDisabled()) {
+            // 是否执行当前ZuulFilter
             if (shouldFilter()) {
                 Tracer t = TracerFactory.instance().startMicroTracer("ZUUL::" + this.getClass().getSimpleName());
                 try {
+                    // 执行当前ZuulFilter的run()方法
                     Object res = run();
                     zr = new ZuulFilterResult(res, ExecutionStatus.SUCCESS);
                 } catch (Throwable e) {

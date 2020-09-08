@@ -53,16 +53,45 @@ public class FilterLoader {
     final static FilterLoader INSTANCE = new FilterLoader();
 
     private static final Logger LOG = LoggerFactory.getLogger(FilterLoader.class);
-
+    /**
+     * 保存了文件完整路径名和文件上一次的变更时间戳,如：
+     * key: D:\project\zuul-1.3.1\zuul-simple-webapp\src\main\groovy\filters\pre\DebugFilter.groovyDebugFilter.groovy
+     * value: 1599533022013
+     */
     private final ConcurrentHashMap<String, Long> filterClassLastModified = new ConcurrentHashMap<String, Long>();
+
+    /**
+     * 保存ZuulFilter的名称或对应的class
+     * key：javaPreFilter
+     * value：com.netflix.zuul.ZuulFilter
+     */
     private final ConcurrentHashMap<String, String> filterClassCode = new ConcurrentHashMap<String, String>();
+
+    /**
+     * 保存ZuulFilter的名称
+     * key：javaPreFilter
+     * value：javaPreFilter
+     */
     private final ConcurrentHashMap<String, String> filterCheck = new ConcurrentHashMap<String, String>();
+
+    /**
+     * 保存了ZuulFilter的类型以及对应类型的类列表
+     * key: pre、post、route
+     * value: List<ZuulFilter>
+     */
     private final ConcurrentHashMap<String, List<ZuulFilter>> hashFiltersByType = new ConcurrentHashMap<String, List<ZuulFilter>>();
 
+    /**
+     * 里面有个ConcurrentHashMap<String, ZuulFilter> filters属性，保存了
+     * key：ZuulFilter绝对路径+文件名
+     * value：对应的ZuulFilter的关系
+     */
     private FilterRegistry filterRegistry = FilterRegistry.instance();
 
+    // 动态代码编译器，默认GroovyCompiler
     static DynamicCodeCompiler COMPILER;
-    
+
+    // 将ZuulFilter类的class文件生成对应实例，默认DefaultFilterFactory
     static FilterFactory FILTER_FACTORY = new DefaultFilterFactory();
 
     /**
@@ -144,14 +173,19 @@ public class FilterLoader {
      * @throws IOException
      */
     public boolean putFilter(File file) throws Exception {
+        // 完整路径：D:\project\zuul-1.3.1\zuul-simple-webapp\src\main\groovy\filters\pre\DebugFilter.groovyDebugFilter.groovy
         String sName = file.getAbsolutePath() + file.getName();
+        // 文件已发生变更
         if (filterClassLastModified.get(sName) != null && (file.lastModified() != filterClassLastModified.get(sName))) {
             LOG.debug("reloading filter " + sName);
+            // 删除filterRegistry中这个sName对应的ZuulFilter
             filterRegistry.remove(sName);
         }
+        // 新建或重新编译
         ZuulFilter filter = filterRegistry.get(sName);
         if (filter == null) {
             Class clazz = COMPILER.compile(file);
+            // 这里不能是抽象类
             if (!Modifier.isAbstract(clazz.getModifiers())) {
                 filter = (ZuulFilter) FILTER_FACTORY.newInstance(clazz);
                 List<ZuulFilter> list = hashFiltersByType.get(filter.filterType());

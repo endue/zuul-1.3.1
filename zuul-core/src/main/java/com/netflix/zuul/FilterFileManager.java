@@ -47,12 +47,12 @@ import static org.mockito.Mockito.*;
 public class FilterFileManager {
 
     private static final Logger LOG = LoggerFactory.getLogger(FilterFileManager.class);
-
+    // 文件路径
     String[] aDirectories;// 默认"src/main/groovy/filters\pre"、"src/main/groovy/filters\route"、"src/main/groovy/filters\post"
     int pollingIntervalSeconds;// 默认5
     Thread poller;// 定时任务启动的线程，每5s执行一次
     boolean bRunning = true;// 定时任务中while选择的判断条件
-
+    // 文件名称过滤器
     static FilenameFilter FILENAME_FILTER;// 默认GroovyFileFilter
 
     static FilterFileManager INSTANCE;// 单例模式创建自己

@@ -53,13 +53,14 @@ public class StartServer implements ServletContextListener {
     }
 
     private void initGroovyFilterManager() {
-        // 步骤一：单例模式获取一个文件加载器FilterLoader
-        // 步骤二：设置动态代码编译器DynamicCodeCompiler，默认为GroovyCompiler
+        // 步骤一：单例模式获取一个文件加载器FilterLoader并设置动态代码编译器DynamicCodeCompiler，默认为GroovyCompiler
         FilterLoader.getInstance().setCompiler(new GroovyCompiler());
         // 这里scriptRoot为：src/main/groovy/filters\
         String scriptRoot = System.getProperty("zuul.filter.root", "");
         if (scriptRoot.length() > 0) scriptRoot = scriptRoot + File.separator;
         try {
+            // 步骤二：单例模式初始化一个文件管理器FilterFileManager并设置文件名称过滤器FilenameFilter，默认为GroovyFileFilter
+            // 最后启动定时任务每隔5s执行一次获取变更的文件交给FilterLoader处理
             FilterFileManager.setFilenameFilter(new GroovyFileFilter());
             FilterFileManager.init(5, scriptRoot + "pre", scriptRoot + "route", scriptRoot + "post");
         } catch (Exception e) {

@@ -67,7 +67,7 @@ public class ZuulRunner {
      * @param servletResponse
      */
     public void init(HttpServletRequest servletRequest, HttpServletResponse servletResponse) {
-
+        // 基于threadLocal保存当前请求线程的HttpServletRequest、HttpServletResponse
         RequestContext ctx = RequestContext.getCurrentContext();
         if (bufferRequests) {
             ctx.setRequest(new HttpServletRequestWrapper(servletRequest));

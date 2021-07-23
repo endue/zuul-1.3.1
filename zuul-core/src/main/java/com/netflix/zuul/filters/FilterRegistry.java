@@ -8,6 +8,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author mhawthorne
+ * 用于管理加载的filter，数据结构比较简单，使用
+ * ConcurrentHashMap<String, ZuulFilter> filters，启动key为filter的name：file.getAbsolutePath() + file.getName();
  */
 public class FilterRegistry {
 

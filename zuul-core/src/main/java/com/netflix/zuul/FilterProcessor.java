@@ -144,17 +144,20 @@ public class FilterProcessor {
      * @param sType the filterType.
      * @return
      * @throws Throwable throws up an arbitrary exception
+     * 执行指定Filter类型下的所有ZuulFilter
      */
     public Object runFilters(String sType) throws Throwable {
         if (RequestContext.getCurrentContext().debugRouting()) {
             Debug.addRoutingDebug("Invoking {" + sType + "} type filters");
         }
         boolean bResult = false;
+        // 获取所有指定类型的ZuulFilter
         List<ZuulFilter> list = FilterLoader.getInstance().getFiltersByType(sType);
         if (list != null) {
             for (int i = 0; i < list.size(); i++) {
                 ZuulFilter zuulFilter = list.get(i);
                 Object result = processZuulFilter(zuulFilter);
+                // 如果处理结果是Boolean类型尝试做或操作，其他类型结果忽略
                 if (result != null && result instanceof Boolean) {
                     bResult |= ((Boolean) result);
                 }
@@ -169,6 +172,7 @@ public class FilterProcessor {
      * @param filter
      * @return the return value for that filter
      * @throws ZuulException
+     * 执行ZuulFilter，真正ZuulFilter的执行逻辑
      */
     public Object processZuulFilter(ZuulFilter filter) throws ZuulException {
 
@@ -189,18 +193,20 @@ public class FilterProcessor {
                 Debug.addRoutingDebug("Filter " + filter.filterType() + " " + filter.filterOrder() + " " + filterName);
                 copy = ctx.copy();
             }
-            
+            // 调用ZuulFilter的runFilter()方法并获取结果
             ZuulFilterResult result = filter.runFilter();
             ExecutionStatus s = result.getStatus();
             execTime = System.currentTimeMillis() - ltime;
-
+            // 判断结果类型
             switch (s) {
                 case FAILED:
                     t = result.getException();
+                    //记录调用链中当前Filter的名称，执行结果状态和执行时间
                     ctx.addFilterExecutionSummary(filterName, ExecutionStatus.FAILED.name(), execTime);
                     break;
                 case SUCCESS:
                     o = result.getResult();
+                    //记录调用链中当前Filter的名称，执行结果状态和执行时间
                     ctx.addFilterExecutionSummary(filterName, ExecutionStatus.SUCCESS.name(), execTime);
                     if (bDebug) {
                         Debug.addRoutingDebug("Filter {" + filterName + " TYPE:" + filter.filterType() + " ORDER:" + filter.filterOrder() + "} Execution time = " + execTime + "ms");
@@ -212,7 +218,7 @@ public class FilterProcessor {
             }
             
             if (t != null) throw t;
-
+            // zuulFilter的计数器统计
             usageNotifier.notify(filter, s);
             return o;
 
@@ -220,11 +226,13 @@ public class FilterProcessor {
             if (bDebug) {
                 Debug.addRoutingDebug("Running Filter failed " + filterName + " type:" + filter.filterType() + " order:" + filter.filterOrder() + " " + e.getMessage());
             }
+            // 计数器的统计
             usageNotifier.notify(filter, ExecutionStatus.FAILED);
             if (e instanceof ZuulException) {
                 throw (ZuulException) e;
             } else {
                 ZuulException ex = new ZuulException(e, "Filter threw Exception", 500, filter.filterType() + ":" + filterName);
+                // 记录调用链中当前Filter的名称，执行结果状态和执行时间
                 ctx.addFilterExecutionSummary(filterName, ExecutionStatus.FAILED.name(), execTime);
                 throw ex;
             }

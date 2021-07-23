@@ -62,6 +62,8 @@ public class RequestContext extends ConcurrentHashMap<String, Object> {
 
     private static RequestContext testContext = null;
 
+    // 被static final修饰的ThreadLocal实例，用于存放所有的RequestContext，每个RequestContext都会绑定在每个请求的处理线程中
+    // 注意这里的ThreadLocal实例的initialValue()方法，当ThreadLocal的get()方法返回null的时候总是会调用initialValue()方法
     protected static final ThreadLocal<? extends RequestContext> threadLocal = new ThreadLocal<RequestContext>() {
         @Override
         protected RequestContext initialValue() {

@@ -64,6 +64,7 @@ public abstract class ZuulFilter implements IZuulFilter, Comparable<ZuulFilter> 
      * Any filterType made be created or added and run by calling FilterProcessor.runFilters(type)
      *
      * @return A String representing that type
+     * 定义Filter的类型
      */
     abstract public String filterType();
 
@@ -72,6 +73,7 @@ public abstract class ZuulFilter implements IZuulFilter, Comparable<ZuulFilter> 
      * important for a filter. filterOrders do not need to be sequential.
      *
      * @return the int order of a filter
+     * 定义当前Filter实例执行的顺序
      */
     abstract public int filterOrder();
 
@@ -79,6 +81,7 @@ public abstract class ZuulFilter implements IZuulFilter, Comparable<ZuulFilter> 
      * By default ZuulFilters are static; they don't carry state. This may be overridden by overriding the isStaticFilter() property to false
      *
      * @return true by default
+     * 是否静态的Filter，静态的Filter是无状态的
      */
     public boolean isStaticFilter() {
         return true;
@@ -86,9 +89,11 @@ public abstract class ZuulFilter implements IZuulFilter, Comparable<ZuulFilter> 
 
     /**
      * The name of the Archaius property to disable this filter. by default it is zuul.[classname].[filtertype].disable
-     * 如：
-     * zuul.SendErrorFilter.error.disable=true
+     *
      * @return
+     * 禁用当前Filter的配置属性的Key名称
+     * Key=zuul.${全类名}.${filterType}.disable
+     * 如：zuul.SendErrorFilter.error.disable=true
      */
     public String disablePropertyName() {
         return "zuul." + this.getClass().getSimpleName() + "." + filterType() + ".disable";
@@ -98,6 +103,7 @@ public abstract class ZuulFilter implements IZuulFilter, Comparable<ZuulFilter> 
      * If true, the filter has been disabled by archaius and will not be run
      *
      * @return
+     * 判断当前的Filter是否禁用，通过disablePropertyName方法从配置中读取，默认是不禁用，也就是启用
      */
     public boolean isFilterDisabled() {
         filterDisabledRef.compareAndSet(null, DynamicPropertyFactory.getInstance().getBooleanProperty(disablePropertyName(), false));
@@ -108,6 +114,7 @@ public abstract class ZuulFilter implements IZuulFilter, Comparable<ZuulFilter> 
      * runFilter checks !isFilterDisabled() and shouldFilter(). The run() method is invoked if both are true.
      *
      * @return the return from ZuulFilterResult
+     * 执行Filter，如果Filter不是禁用、并且满足执行时机则调用run方法，返回执行结果，记录执行轨迹
      */
     public ZuulFilterResult runFilter() {
         ZuulFilterResult zr = new ZuulFilterResult();
@@ -121,6 +128,7 @@ public abstract class ZuulFilter implements IZuulFilter, Comparable<ZuulFilter> 
                     Object res = run();
                     zr = new ZuulFilterResult(res, ExecutionStatus.SUCCESS);
                 } catch (Throwable e) {
+                    // 如果出现异常，Throwable实例会保存在ZuulFilterResult对象中返回到外层方法
                     t.setName("ZUUL::" + this.getClass().getSimpleName() + " failed");
                     zr = new ZuulFilterResult(ExecutionStatus.FAILED);
                     zr.setException(e);
@@ -134,6 +142,7 @@ public abstract class ZuulFilter implements IZuulFilter, Comparable<ZuulFilter> 
         return zr;
     }
 
+    // 实现Comparable，基于filterOrder升序排序，也就是filterOrder越大，执行优先度越低
     public int compareTo(ZuulFilter filter) {
         return Integer.compare(this.filterOrder(), filter.filterOrder());
     }

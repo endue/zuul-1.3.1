@@ -43,19 +43,22 @@ import static org.mockito.Mockito.*;
  * @author Mikey Cohen
  *         Date: 12/7/11
  *         Time: 12:09 PM
+ * zuul支持动加载Filter类文件。该类实现原理是监控存放Filter文件的目录，定期扫描这些目录，
+ * 如果发现有新Filter源码文件或者Filter源码文件有改动，则对文件进行加载交给FilterLoader类处理
  */
 public class FilterFileManager {
 
     private static final Logger LOG = LoggerFactory.getLogger(FilterFileManager.class);
 
     String[] aDirectories;// 默认"src/main/groovy/filters\pre"、"src/main/groovy/filters\route"、"src/main/groovy/filters\post"
-    int pollingIntervalSeconds;// 默认5
+    int pollingIntervalSeconds;// 默认5s
     Thread poller;// 定时任务启动的线程，每5s执行一次
     boolean bRunning = true;// 定时任务中while选择的判断条件
 
-    static FilenameFilter FILENAME_FILTER;// 默认GroovyFileFilter
+    // 文件名过滤器，默认GroovyFileFilter
+    static FilenameFilter FILENAME_FILTER;
 
-    static FilterFileManager INSTANCE;// 单例模式创建自己
+    static FilterFileManager INSTANCE;
 
     private FilterFileManager() {
     }
@@ -81,10 +84,10 @@ public class FilterFileManager {
 
         INSTANCE.aDirectories = directories;
         INSTANCE.pollingIntervalSeconds = pollingIntervalSeconds;
-        // 立即读取aDirectories目录下的Groovy文件
+        // 立即读取aDirectories属性目录下的Groovy文件
         // 之后会启动一个定时任务再每隔5s执行一次
         INSTANCE.manageFiles();
-        // 启动定时任务，每5s执行一次
+        // 启动定时任务，每5s执行一次manageFiles()方法
         INSTANCE.startPoller();
 
     }

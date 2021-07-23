@@ -48,13 +48,14 @@ import static org.mockito.Mockito.when;
  * @author Mikey Cohen
  *         Date: 11/3/11
  *         Time: 1:59 PM
+ * 编译、加载filter文件，并且检查源文件是否有变更，除此之外，它还按照filterType组织并维护List<ZuulFilter>
  */
 public class FilterLoader {
     final static FilterLoader INSTANCE = new FilterLoader();
 
     private static final Logger LOG = LoggerFactory.getLogger(FilterLoader.class);
     /**
-     * 保存了文件完整路径名和文件上一次的变更时间戳,如：
+     * 保存文件完整路径名和文件上一次的变更时间戳
      * key: D:\project\zuul-1.3.1\zuul-simple-webapp\src\main\groovy\filters\pre\DebugFilter.groovyDebugFilter.groovy
      * value: 1599533022013
      */
@@ -75,7 +76,7 @@ public class FilterLoader {
     private final ConcurrentHashMap<String, String> filterCheck = new ConcurrentHashMap<String, String>();
 
     /**
-     * 保存了ZuulFilter的类型以及对应类型的类列表
+     * 保存ZuulFilter的类型以及该类型下的所有ZuulFilter列表
      * key: pre、post、route
      * value: List<ZuulFilter>
      */
@@ -206,6 +207,7 @@ public class FilterLoader {
      *
      * @param filterType
      * @return a List<ZuulFilter>
+     * 根据指定的filterType返回对应的列表
      */
     public List<ZuulFilter> getFiltersByType(String filterType) {
 

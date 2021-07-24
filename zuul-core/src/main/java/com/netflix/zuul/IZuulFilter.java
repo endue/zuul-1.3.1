@@ -29,6 +29,7 @@ public interface IZuulFilter {
      * a "true" return from this method means that the run() method should be invoked
      *
      * @return true if the run() method should be invoked. false will not invoke the run() method
+     * 是否需要执行(也就是执行时机由使用者扩展，甚至可以禁用)
      */
     boolean shouldFilter();
 
@@ -37,6 +38,7 @@ public interface IZuulFilter {
      *
      * @return Some arbitrary artifact may be returned. Current implementation ignores it.
 	 * @throws ZuulException if an error occurs during execution.
+     * 执行的逻辑
      */
     Object run() throws ZuulException;
 

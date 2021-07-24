@@ -43,14 +43,16 @@ import static org.mockito.Mockito.*;
  * @author Mikey Cohen
  *         Date: 12/7/11
  *         Time: 12:09 PM
- * zuul支持动加载Filter类文件。该类实现原理是监控存放Filter文件的目录，定期扫描这些目录，
+ * zuul支持动态加载Filter类文件。该类实现原理是监控存放Filter文件的目录，定期扫描这些目录，
  * 如果发现有新Filter源码文件或者Filter源码文件有改动，则对文件进行加载交给FilterLoader类处理
  */
 public class FilterFileManager {
 
     private static final Logger LOG = LoggerFactory.getLogger(FilterFileManager.class);
 
+    // ZuulFilter路径
     String[] aDirectories;// 默认"src/main/groovy/filters\pre"、"src/main/groovy/filters\route"、"src/main/groovy/filters\post"
+    // 定时任务执行间隔
     int pollingIntervalSeconds;// 默认5s
     Thread poller;// 定时任务启动的线程，每5s执行一次
     boolean bRunning = true;// 定时任务中while选择的判断条件
@@ -185,6 +187,7 @@ public class FilterFileManager {
     }
 
     void manageFiles() throws Exception, IllegalAccessException, InstantiationException {
+        // 加载aDirectories目录下的所有的文件然后在基于FILENAME_FILTER过滤出符合要求的文件
         List<File> aFiles = getFiles();
         processGroovyFiles(aFiles);
     }

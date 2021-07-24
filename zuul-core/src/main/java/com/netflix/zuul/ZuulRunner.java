@@ -69,6 +69,8 @@ public class ZuulRunner {
     public void init(HttpServletRequest servletRequest, HttpServletResponse servletResponse) {
 
         RequestContext ctx = RequestContext.getCurrentContext();
+        // HttpServletRequestWrapper主要是把请求的表单参数和请求体都缓存在实例属性中，这样在一些特定场景中可以提高性能。
+        // 如果没有特殊需要，bufferRequests一般设置为false
         if (bufferRequests) {
             ctx.setRequest(new HttpServletRequestWrapper(servletRequest));
         } else {
